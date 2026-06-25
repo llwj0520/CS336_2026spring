@@ -1,4 +1,5 @@
 import torch
+import math
 
 
 class Linear(torch.nn.Module):
@@ -479,3 +480,17 @@ class AdamW(torch.optim.Optimizer):
         return loss
 
 
+#动态学习率
+def get_lr_cosine_schedule(it:int,max_learning_rate:float,min_learning_rate:float,warmup_iters:int,cosine_cycle_iters: int,) -> torch.Tensor:
+    #warm-up
+    if it<warmup_iters:
+        return  it/warmup_iters *max_learning_rate
+
+    #cosine decay：从最大学习率平滑下降到最小学习率
+    if it <= cosine_cycle_iters:
+        progress = (it - warmup_iters) / (cosine_cycle_iters - warmup_iters)
+        return min_learning_rate+0.5*(1+math.cos(math.pi*progress))*(max_learning_rate-min_learning_rate)
+
+    #post-annealing：cosine schedule 已经结束了，之后保持最终最小 learning rate，不继续下降
+    
+    return min_learning_rate
