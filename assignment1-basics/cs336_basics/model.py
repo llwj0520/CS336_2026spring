@@ -494,3 +494,42 @@ def get_lr_cosine_schedule(it:int,max_learning_rate:float,min_learning_rate:floa
     #post-annealing：cosine schedule 已经结束了，之后保持最终最小 learning rate，不继续下降
     
     return min_learning_rate
+
+
+#gradient clipping限制整体梯度范数,防止某次 batch 导致 gradient 特别大，optimizer 更新时参数会被改得太猛，训练可能不稳定
+def gradient_clipping(parameters, max_l2_norm: float):
+    eps = 1e-6
+    total_norm = 0.0
+
+    # 第一步：计算所有梯度平方和
+    for param in parameters:
+        if param.grad is None:
+            continue
+
+        grad = param.grad
+        total_norm += torch.sum(grad ** 2)
+
+    # 第二步：平方和开根号，得到真正的 l2 norm
+    total_norm = torch.sqrt(total_norm)
+
+    # 第三步：如果总 norm 没有超过上限，就不需要裁剪
+    if total_norm <= max_l2_norm:
+        return
+
+    # 第四步：计算缩放系数
+    clip_coef = max_l2_norm / (total_norm + eps)
+
+    # 第五步：原地缩放每一个参数的梯度
+    for param in parameters:
+        if param.grad is None:
+            continue
+
+        param.grad.mul_(clip_coef)
+
+
+        
+
+
+        
+
+
