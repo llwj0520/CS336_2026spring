@@ -69,9 +69,12 @@ def train(
         valid_dataset =None,     #验证集 token ids
         eval_every: int = 100,   #每隔多少步评估一次
         log_path: str | None = None,     #日志文件路径
+        norm_style: str = "pre",
+        use_rope: bool = True,
+        ffn_type: str = "swiglu",
 ):
     #模型选择：
-    model=TransformerLM(
+    model = TransformerLM(
         vocab_size=vocab_size,
         context_length=context_length,
         d_model=d_model,
@@ -80,7 +83,9 @@ def train(
         d_ff=d_ff,
         rope_theta=rope_theta,
         device=device,
-       
+        norm_style=norm_style,
+        use_rope=use_rope,
+        ffn_type=ffn_type,
     )
 
     #优化器选择
