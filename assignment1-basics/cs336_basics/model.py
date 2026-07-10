@@ -120,10 +120,10 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         self.d_k = d_k
         self.max_seq_len = max_seq_len
 
-        #每一个特征对应一个旋转的频率
+        #特征凉两两拆分组合，每一个特征对应一个旋转的频率
         frequencies=1.0/theta**(torch.arange(0,d_k,2, device=device,dtype=torch.float32)/d_k)
 
-        #token 位置 i
+        #每个组合对应一个token 位置 i
         positions=torch.arange(0,max_seq_len,1,device=device, dtype=torch.float32)
 
         #随后再外积相乘 shape: (max_seq_len, d_k // 2)
@@ -378,7 +378,8 @@ def cross_entropy(inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 
     #避免计算 \(e^{o_j}\) 时溢出
     shifted_logits = inputs - max_logits
-
+    
+    #\(\log \sum_{j=1}^{V} e^{z_j - m}\)
     log_normalizer = torch.log(
         torch.exp(shifted_logits).sum(dim=-1)
     )
@@ -428,7 +429,7 @@ class AdamW(torch.optim.Optimizer):
         #如果用户传了 closure就打开梯度计算,执行 closure()，重新 forward + backward
         if closure is not None:
             with torch.enable_grad():
-                loss=closure
+                loss=closure()
         
         for group in self.param_groups:
             lr=group["lr"]
@@ -436,10 +437,12 @@ class AdamW(torch.optim.Optimizer):
             eps = group["eps"]
             weight_decay = group["weight_decay"]
             
+            #遍历每个参数
             for param in group["params"]:
+                #没有梯度的参数就跳过
                 if param.grad is None:
                     continue
-
+           
                 grad=param.grad
                 state=self.state[param]
 
@@ -463,7 +466,7 @@ class AdamW(torch.optim.Optimizer):
                 v.mul_(beta2)
                 v.addcmul_(grad,grad,value=1-beta2)
 
-                # 偏差修正
+                # 偏差修正：一开始 \(m_0\) 和 \(v_0\) 都是 0，前几步的动量会偏小，所以要除以这个因子修正。
                 m_hat = m / (1 - beta1 ** t)
                 v_hat = v / (1 - beta2 ** t)
 
