@@ -27,7 +27,7 @@ NUM_LAYERS = 34
 NUM_HEADS = 32
 COMPUTE_DTYPE = torch.bfloat16
 
-
+#让多个 Python 进程组成一个分布式通信组，并让每个进程绑定对应的 GPU
 def setup_process_group(rank: int, world_size: int) -> None:
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "29504"
