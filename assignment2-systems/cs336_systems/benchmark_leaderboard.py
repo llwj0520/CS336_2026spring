@@ -38,7 +38,7 @@ def setup_process_group(rank: int, world_size: int) -> None:
         world_size=world_size,
     )
 
-
+#使用flash attention
 def install_triton_flash_attention() -> None:
     def flash_attention(
         q: torch.Tensor,
