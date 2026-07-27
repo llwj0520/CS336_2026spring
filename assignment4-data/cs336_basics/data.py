@@ -4,7 +4,8 @@ import numpy as np
 import numpy.typing as npt
 import torch
 
-
+#随机选取连续的 513 个 token，把答案向左错开一位。
+#因此不需要人工为训练数据标注正确答案。每个 token 后面的那个 token，就是它的正确答案。
 def get_batch(
     dataset: npt.NDArray, batch_size: int, context_length: int, device: str
 ) -> tuple[torch.Tensor, torch.Tensor]:
